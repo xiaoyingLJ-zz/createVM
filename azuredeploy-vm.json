@@ -46,12 +46,12 @@
         "description": "The Windows version for the VM. This will pick a fully patched image of this given Windows version."
       }
     },
-    "open 8050 port": {
+    "open service bus port": {
       "type": "string",
       "allowedValues": ["Yes", "No"],
       "defaultValue": "Yes",
       "metadata":{
-        "description": "Do you want open 8050 port for Gateway?"
+        "description": "Do you want open service bus port for Gateway?"
       }
     }
   },
@@ -249,9 +249,9 @@
                 "priority": 1010,
                 "sourceAddressPrefix": "*",
                 "protocol": "TCP",
-                "destinationPortRange": "8050",
+                "destinationPortRange": "443",
                 "access": "Allow",
-                "direction": "Inbound",
+                "direction": "Outbound",
                 "sourcePortRange": "*",
                 "destinationAddressPrefix": "*"
             }
