@@ -270,11 +270,11 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(variables('virtualMachineName'),'/installgateway')]",
+      "name": "[concat(parameters('virtualMachineName'),'/installgateway')]",
       "apiVersion": "2015-06-15",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/',variables('virtualMachineName'))]"
+        "[concat('Microsoft.Compute/virtualMachines/',parameters('virtualMachineName'))]"
       ],
       "properties": {
         "publisher": "Microsoft.Compute",
