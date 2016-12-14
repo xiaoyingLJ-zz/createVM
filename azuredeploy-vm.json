@@ -137,7 +137,7 @@
           }
         ],
         "networkSecurityGroup": {
-            "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+            "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('networkSecurityGroupName'), parameters('open 8050 port')))]"
         }
       }
     },
