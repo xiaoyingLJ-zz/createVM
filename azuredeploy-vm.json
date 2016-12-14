@@ -46,6 +46,12 @@
         "description": "The Windows version for the VM. This will pick a fully patched image of this given Windows version."
       }
     },
+    "gatewayKey": {
+      "type": "securestring",
+      "metadata":{
+        "description": "gateway key"
+      }
+    },
     "open service bus port": {
       "type": "string",
       "allowedValues": ["Yes", "No"],
@@ -64,7 +70,10 @@
     "publicIPAddressName": "[concat(parameters('virtualMachineName'), '-ip')]",
     "virtualNetworkName": "[concat(parameters('virtualMachineName'), 'VNET')]",
     "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
-    "networkSecurityGroupName": "[concat(parameters('virtualMachineName'), 'nsg')]"
+    "networkSecurityGroupName": "[concat(parameters('virtualMachineName'), 'nsg')]",
+    "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
+    "scriptURL": "https://raw.githubusercontent.com/xiaoyingLJ/createVM/master/gatewayInstall.ps1",
+    "scriptParameters": "[concat('-gatewayKey ', parameters('gatewayKey'))]"
   },
   "resources": [
     {
@@ -257,6 +266,25 @@
             }
           }
         ]
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('virtualMachineName'),'/installgateway')]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/',variables('virtualMachineName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.7",
+        "autoUpgradeMinorVersion":true,
+        "settings": {
+          "fileUris": [ "[variables('scriptURL')]"],
+          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File gatewayInstall.ps1 ', variables('scriptParameters'))]"
+        }
       }
     }
   ],
