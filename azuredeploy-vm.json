@@ -45,6 +45,14 @@
       "metadata": {
         "description": "The Windows version for the VM. This will pick a fully patched image of this given Windows version."
       }
+    },
+    "open 8050 port": {
+      "type": "string",
+      "allowedValues": ["Yes", "No"],
+      "defaultValue": "Yes",
+      "metadata":{
+        "description": "Do you want open 8050 port for Gateway?"
+      }
     }
   },
   "variables": {
@@ -111,7 +119,7 @@
       "dependsOn": [
         "[resourceId('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
         "[resourceId('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
-        "[resourceId('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]"
+        "[resourceId('Microsoft.Network/networkSecurityGroups/', concat(variables('networkSecurityGroupName'), parameters('open 8050 port')))]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -193,26 +201,62 @@
       }
     },
     {
-      "name": "[variables('networkSecurityGroupName')]",
+      "name": "[concat(variables('networkSecurityGroupName'), 'No')]",
       "type": "Microsoft.Network/networkSecurityGroups",
       "apiVersion": "2016-09-01",
       "location": "[resourceGroup().location]",
       "properties": {
-          "securityRules": [
-              {
-                  "name": "default-allow-rdp",
-                  "properties": {
-                      "priority": 1000,
-                      "sourceAddressPrefix": "*",
-                      "protocol": "TCP",
-                      "destinationPortRange": "3389",
-                      "access": "Allow",
-                      "direction": "Inbound",
-                      "sourcePortRange": "*",
-                      "destinationAddressPrefix": "*"
-                  }
-              }
-          ]
+        "securityRules": [
+          {
+            "name": "default-allow-rdp",
+            "properties": {
+                "priority": 1000,
+                "sourceAddressPrefix": "*",
+                "protocol": "TCP",
+                "destinationPortRange": "3389",
+                "access": "Allow",
+                "direction": "Inbound",
+                "sourcePortRange": "*",
+                "destinationAddressPrefix": "*"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[concat(variables('networkSecurityGroupName'), 'Yes')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2016-09-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "default-allow-rdp",
+            "properties": {
+                "priority": 1000,
+                "sourceAddressPrefix": "*",
+                "protocol": "TCP",
+                "destinationPortRange": "3389",
+                "access": "Allow",
+                "direction": "Inbound",
+                "sourcePortRange": "*",
+                "destinationAddressPrefix": "*"
+            }
+          },
+          {
+            "name": "ResourceManager",
+            "properties": {
+                "priority": 1010,
+                "sourceAddressPrefix": "*",
+                "protocol": "TCP",
+                "destinationPortRange": "8050",
+                "access": "Allow",
+                "direction": "Inbound",
+                "sourcePortRange": "*",
+                "destinationAddressPrefix": "*"
+            }
+          }
+        ]
       }
     }
   ],
