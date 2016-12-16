@@ -13,18 +13,6 @@
         "defaultValue": "Standard_DS1_v2",
         "allowedValues": ["Standard_DS1_v2", "Standard_DS2_v2", "Standard_DS13_v2"]
     },
-    "adminUsername": {
-      "type": "string",
-      "metadata": {
-        "description": "Username for the Virtual Machine."
-      }
-    },
-    "adminPassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Password for the Virtual Machine."
-      }
-    },
     "dnsLabelPrefix": {
       "type": "string",
       "metadata": {
@@ -165,8 +153,8 @@
         },
         "osProfile": {
           "computerName": "[parameters('virtualMachineName')]",
-          "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
+          "adminUsername": "hbzhxying",
+          "adminPassword": "951Qinghuaci"
         },
         "storageProfile": {
           "imageReference": {
