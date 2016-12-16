@@ -73,7 +73,7 @@
     "networkSecurityGroupName": "[concat(parameters('virtualMachineName'), 'nsg')]",
     "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
     "scriptURL": "https://raw.githubusercontent.com/xiaoyingLJ/createVM/master/gatewayInstall.ps1",
-    "scriptParameters": "[concat('-gatewayKey ', parameters('gatewayKey'), ' -vmdnsname ', reference(variables('publicIPAddressName')).dnsSettings.fqdn)]"
+    "scriptParameters": "[concat('-gatewayKey ', parameters('gatewayKey')]"
   },
   "resources": [
     {
@@ -274,7 +274,8 @@
       "apiVersion": "2015-06-15",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/',parameters('virtualMachineName'))]"
+        "[concat('Microsoft.Compute/virtualMachines/',parameters('virtualMachineName'))]",
+        "[resourceId('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]"
       ],
       "properties": {
         "publisher": "Microsoft.Compute",
@@ -283,7 +284,7 @@
         "autoUpgradeMinorVersion":true,
         "settings": {
           "fileUris": [ "[variables('scriptURL')]"],
-          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File gatewayInstall.ps1 ', variables('scriptParameters'))]"
+          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File gatewayInstall.ps1 ', variables('scriptParameters'), ' -vmdnsname ', reference(variables('publicIPAddressName')).dnsSettings.fqdn))]"
         }
       }
     }
