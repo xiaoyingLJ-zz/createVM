@@ -73,7 +73,7 @@
     "networkSecurityGroupName": "[concat(parameters('virtualMachineName'), 'nsg')]",
     "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
     "scriptURL": "https://raw.githubusercontent.com/xiaoyingLJ/createVM/master/gatewayInstall.ps1",
-    "scriptParameters": "[concat('-gatewayKey ', parameters('gatewayKey'))]"
+    "scriptParameters": "[concat('-gatewayKey ', parameters('gatewayKey'), ' -vmdnsname ', reference(variables('publicIPAddressName')).dnsSettings.fqdn)]"
   },
   "resources": [
     {

@@ -1,6 +1,8 @@
 ﻿param(
  [string]
- $gatewayKey
+ $gatewayKey,
+ [string]
+ $vmdnsname
 )
 
 
@@ -117,3 +119,6 @@ function Register-Gateway([string] $instanceKey)
 }
 Install-Gateway $gwPath
 Register-Gateway $gatewayKey
+
+$regkey = "hklm:\Software\Microsoft\DataTransfer\DataManagementGateway\HostService"
+Set-ItemProperty -Path $regkey -Name ExternalHostName -Value $vmdnsname
