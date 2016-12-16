@@ -52,12 +52,12 @@
         "description": "gateway key"
       }
     },
-    "open service bus port": {
+    "open gateway port": {
       "type": "string",
       "allowedValues": ["Yes", "No"],
       "defaultValue": "Yes",
       "metadata":{
-        "description": "Do you want open service bus port for Gateway?"
+        "description": "Do you want open gateway port (8050)?"
       }
     }
   },
@@ -258,9 +258,9 @@
                 "priority": 1010,
                 "sourceAddressPrefix": "*",
                 "protocol": "TCP",
-                "destinationPortRange": "443",
+                "destinationPortRange": "8050",
                 "access": "Allow",
-                "direction": "Outbound",
+                "direction": "Inbound",
                 "sourcePortRange": "*",
                 "destinationAddressPrefix": "*"
             }
