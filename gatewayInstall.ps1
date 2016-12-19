@@ -12,6 +12,7 @@ $client = New-Object System.Net.WebClient
 $gatewayInfo = $client.DownloadString($uri) | ConvertTo-Json  | ConvertFrom-Json
 $psobject = $gatewayInfo | ConvertFrom-Json
 $downloadPath = $psobject | select -ExpandProperty "gatewayBitsLink"
+$hashValue = $psobject | select -ExpandProperty "gatewayBitHash"
 $client.DownloadFile($downloadPath, $gwPath)
 
 function DMDTTP-RunProcess([string] $process, [string] $arguments)
@@ -57,6 +58,14 @@ function DMDTTP-RunProcess([string] $process, [string] $arguments)
 	return $outContent.Trim()
 }
 
+function Verify-Signature([string] $gwPath, [string] $hashValue)
+{
+    $hasher = [System.Security.Cryptography.SHA256CryptoServiceProvider]::Create()
+    $content = [System.IO.File]::OpenRead($gwPath)
+    $hash = [System.Convert]::ToBase64String($hasher.ComputeHash($content))
+    return ($hash -eq $hashValue)
+}
+
 function Install-Gateway([string] $gwPath)
 {
 	if ([string]::IsNullOrEmpty($gwPath))
@@ -68,6 +77,11 @@ function Install-Gateway([string] $gwPath)
 	{
 		throw "Invalid gateway path: $gwPath"
 	}
+    
+    if(!(Verify-Signature $gwPath $hashValue))
+    {
+        throw "invalid gateway msi"
+    }
 	
 	Write-Verbose "Copy Gateway installer from $gwPath to current location: $PWD"	
 	Copy-Item -Path $gwPath -Destination $PWD -Force
@@ -79,18 +93,18 @@ function Install-Gateway([string] $gwPath)
 	Write-Verbose "Installation of gateway is successful"
 }
 
-function DMDTTP-GetRegistryProperty([string] $keyPath, [string] $property)
+function GetRegistryProperty([string] $keyPath, [string] $property)
 {
-	Write-Verbose "DMDTTP-GetRegistryProperty: Get $property from $keyPath"
+	Write-Verbose "GetRegistryProperty: Get $property from $keyPath"
 	if (! (Test-Path $keyPath))
 	{
-		Write-Verbose "DMDTTP-GetRegistryProperty: $keyPath does not exist"
+		Write-Verbose "GetRegistryProperty: $keyPath does not exist"
 	}
 
 	$keyReg = Get-Item $keyPath
 	if (! ($keyReg.Property -contains $property))
 	{
-		Write-Verbose "DMDTTP-GetRegistryProperty: $property does not exist"
+		Write-Verbose "GetRegistryProperty: $property does not exist"
 		return ""
 	}
 
@@ -99,7 +113,7 @@ function DMDTTP-GetRegistryProperty([string] $keyPath, [string] $property)
 
 function Get-InstalledFilePath()
 {
-	$filePath = DMDTTP-GetRegistryProperty "hklm:\Software\Microsoft\DataTransfer\DataManagementGateway\ConfigurationManager" "DiacmdPath"
+	$filePath = GetRegistryProperty "hklm:\Software\Microsoft\DataTransfer\DataManagementGateway\ConfigurationManager" "DiacmdPath"
 	if ([string]::IsNullOrEmpty($filePath))
 	{
 		throw "Get-InstalledFilePath: Cannot find installed File Path"
