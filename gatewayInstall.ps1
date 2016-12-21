@@ -5,27 +5,14 @@
  $vmdnsname
 )
 
+# init log setting
 $logLoc = "$env:SystemDrive\WindowsAzure\Logs\Plugins\Microsoft.Compute.CustomScriptExtension\"
 if (! (Test-Path($logLoc)))
 {
-    Trace-Log "Can't find the log folder $logLoc, will create new directory"
     New-Item -path $logLoc -type directory -Force
-    Trace-Log "Created the log folder $logLoc"
 }
 $logPath = "$logLoc\tracelog.log"
-Trace-Log "Log file: $logLoc"
-$uri = "https://wu.configuration.dataproxy.clouddatahub.net/GatewayClient/GatewayBits?version={0}&language={1}&platform={2}" -f "latest","en-US","x64"
-Trace-Log "Configuration service url: $uri"
-$gwPath= "$env:tmp\gateway.msi"
-Trace-Log "Gateway download location: $gwPath"
-
-Download-Gateway $uri $gwPath
-Install-Gateway $gwPath
-Register-Gateway $gatewayKey
-
-$regkey = "hklm:\Software\Microsoft\DataTransfer\DataManagementGateway\HostService"
-Set-ItemProperty -Path $regkey -Name ExternalHostName -Value $vmdnsname
-
+"Start to excute gatewayInstall.ps1. `n" | Out-File $logPath
 
 function Now-Value()
 {
@@ -119,6 +106,7 @@ function Download-Gateway([string] $url, [string] $gwPath)
         Trace-Log "Expected gateway bit hash value: $hashValue"
         $client.DownloadFile($downloadPath, $gwPath)
         Trace-Log "Download gateway successfully. Gateway loc: $gwPath"
+        return $hashValue
     }
     catch
     {
@@ -126,6 +114,7 @@ function Download-Gateway([string] $url, [string] $gwPath)
         Trace-Log $_.Exception.ToString()
         throw
     }
+    return
 }
 
 function Verify-Signature([string] $gwPath, [string] $hashValue)
@@ -133,12 +122,12 @@ function Verify-Signature([string] $gwPath, [string] $hashValue)
     Trace-Log "Begin to verify gateway signature."
     if ([string]::IsNullOrEmpty($gwPath))
     {
-		throw "Gateway path is not specified"
+		Throw-Error "Gateway path is not specified"
     }
 
 	if (!(Test-Path -Path $gwPath))
 	{
-		throw "Invalid gateway path: $gwPath"
+		Throw-Error "Invalid gateway path: $gwPath"
 	}
     $hasher = [System.Security.Cryptography.SHA256CryptoServiceProvider]::Create()
     $content = [System.IO.File]::OpenRead($gwPath)
@@ -147,21 +136,21 @@ function Verify-Signature([string] $gwPath, [string] $hashValue)
     return ($hash -eq $hashValue)
 }
 
-function Install-Gateway([string] $gwPath)
+function Install-Gateway([string] $gwPath, [string] $hashValue)
 {
 	if ([string]::IsNullOrEmpty($gwPath))
     {
-		throw "Gateway path is not specified"
+		Throw-Error "Gateway path is not specified"
     }
 
 	if (!(Test-Path -Path $gwPath))
 	{
-		throw "Invalid gateway path: $gwPath"
+		Throw-Error "Invalid gateway path: $gwPath"
 	}
     
     if(!(Verify-Signature $gwPath $hashValue))
     {
-        throw "invalid gateway msi"
+        Throw-Error "invalid gateway msi"
     }
 	
 	Trace-Log "Copy Gateway installer from $gwPath to current location: $PWD"	
@@ -201,6 +190,7 @@ function Get-InstalledFilePath()
 	{
 		Throw-Error "Get-InstalledFilePath: Cannot find installed File Path"
 	}
+    Trace-Log "Gateway installation file: $filePath"
 
 	return $filePath
 }
@@ -215,3 +205,18 @@ function Register-Gateway([string] $instanceKey)
     Trace-Log "Agent registration is successful!"
 }
 
+Trace-Log "Log file: $logLoc"
+$uri = "https://wu.configuration.dataproxy.clouddatahub.net/GatewayClient/GatewayBits?version={0}&language={1}&platform={2}" -f "latest","en-US","x64"
+Trace-Log "Configuration service url: $uri"
+$gwPath= "$env:tmp\gateway.msi"
+Trace-Log "Gateway download location: $gwPath"
+
+
+
+
+$hashValue = Download-Gateway $uri $gwPath
+Install-Gateway $gwPath $hashValue
+Register-Gateway $gatewayKey
+
+# $regkey = "hklm:\Software\Microsoft\DataTransfer\DataManagementGateway\HostService"
+# Set-ItemProperty -Path $regkey -Name ExternalHostName -Value $vmdnsname

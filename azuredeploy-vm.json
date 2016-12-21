@@ -62,12 +62,12 @@
     }
   },
   "variables": {
-    "storageAccountName": "[concat(uniquestring(resourceGroup().id), parameters('virtualMachineName'))]",
+    "storageAccountName": "[concat(uniquestring(resourceGroup().id), toLower(parameters('virtualMachineName')))]",
     "nicName": "[concat(parameters('virtualMachineName'), 'Nic')]",
     "addressPrefix": "10.0.0.0/16",
     "subnetName": "Subnet",
     "subnetPrefix": "10.0.0.0/24",
-    "publicIPAddressName": "[concat(parameters('virtualMachineName'), '-ip')]",
+    "publicIPAddressName": "[concat(uniquestring(resourceGroup().id), '-ip')]",
     "virtualNetworkName": "[concat(parameters('virtualMachineName'), 'VNET')]",
     "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
     "networkSecurityGroupName": "[concat(parameters('virtualMachineName'), 'nsg')]",
@@ -95,7 +95,7 @@
       "properties": {
         "publicIPAllocationMethod": "Dynamic",
         "dnsSettings": {
-          "domainNameLabel": "[parameters('dnsLabelPrefix')]"
+          "domainNameLabel": "[concat(uniquestring(resourceGroup().id), toLower(parameters('dnsLabelPrefix'))]"
         }
       }
     },
