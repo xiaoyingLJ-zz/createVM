@@ -73,7 +73,7 @@
     "addressPrefix": "10.0.0.0/16",
     "subnetName": "Subnet",
     "subnetPrefix": "10.0.0.0/24",
-    "publicIPAddressName": "[concat(uniquestring(resourceGroup().id), '-ip')]",
+    "publicIPAddressName": "[parameters('virtualMachineName'), '-ip')]",
     "virtualNetworkName": "[concat(parameters('virtualMachineName'), 'VNET')]",
     "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
     "networkSecurityGroupName": "[concat(parameters('virtualMachineName'), 'nsg')]",
