@@ -68,7 +68,7 @@
     },
     "Storage Account":{
     	"type": "string",
-    	"defaultValue": "[concat(uniquestring(resourceGroup().id), toLower(parameters('Name')))]",
+    	"defaultValue": "concat(uniquestring(resourceGroup().id), toLower(parameters('Name')))",
     	"metadata": {
     		"description": "Disks for Azure virtual machines are created in storage accounts."
     	}
