@@ -153,16 +153,12 @@ function Install-Gateway([string] $gwPath, [string] $hashValue)
         Throw-Error "invalid gateway msi"
     }
 	
-	Trace-Log "Copy Gateway installer from $gwPath to current location: $PWD"	
-	Copy-Item -Path $gwPath -Destination $PWD -Force
 	Trace-Log "Start Gateway installation"
 	Run-Process "msiexec.exe" "/i gateway.msi /quiet /passive"		
 	
 	Start-Sleep -Seconds 30	
 
 	Trace-Log "Installation of gateway is successful"
-
-    Remove-Item $gwPath
 }
 
 function Get-RegistryProperty([string] $keyPath, [string] $property)
@@ -208,15 +204,15 @@ function Register-Gateway([string] $instanceKey)
 Trace-Log "Log file: $logLoc"
 $uri = "https://wu.configuration.dataproxy.clouddatahub.net/GatewayClient/GatewayBits?version={0}&language={1}&platform={2}" -f "latest","en-US","x64"
 Trace-Log "Configuration service url: $uri"
-$gwPath= "$env:tmp\gateway.msi"
+$gwPath= "$PWD\gateway.msi"
 Trace-Log "Gateway download location: $gwPath"
-
-
 
 
 $hashValue = Download-Gateway $uri $gwPath
 Install-Gateway $gwPath $hashValue
 Register-Gateway $gatewayKey
 
-# $regkey = "hklm:\Software\Microsoft\DataTransfer\DataManagementGateway\HostService"
-# Set-ItemProperty -Path $regkey -Name ExternalHostName -Value $vmdnsname
+$regkey = "hklm:\Software\Microsoft\DataTransfer\DataManagementGateway\HostService"
+Trace-Log "set externalhostname for gateway"
+Set-ItemProperty -Path $regkey -Name ExternalHostName -Value $vmdnsname
+Trace-Log "Successfully add VM DNS name $vmdnsname in Registry"

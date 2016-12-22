@@ -2,13 +2,13 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "virtualMachineName": {
+    "Name": {
       "type": "string",
       "metadata": {
         "description": "Input the virtual machine name"
       }
     },        
-    "virtualMachineSize": {
+    "Size": {
         "type": "string",
         "defaultValue": "Standard_DS1_v2",
         "allowedValues": ["Standard_DS1_v2", "Standard_DS2_v2", "Standard_DS3_v2", "Standard_DS4_v2", "Standard_DS5_v2", 
@@ -19,13 +19,13 @@
     		"Standard_F1s", "Standard_F2s", "Standard_F4s", "Standard_F8s", "Standard_F16s",
         ]
     },
-    "adminUsername": {
+    "User name": {
       "type": "string",
       "metadata": {
         "description": "Username for the Virtual Machine."
       }
     },
-    "adminPassword": {
+    "Password": {
       "type": "securestring",
       "metadata": {
         "description": "Password for the Virtual Machine."
@@ -65,19 +65,53 @@
       "metadata":{
         "description": "Do you want open gateway port (8050)?"
       }
+    },
+    "Storage Account":{
+    	"type": "string",
+    	"defaultValue": "[concat(uniquestring(resourceGroup().id), toLower(parameters('Name')))]",
+    	"metadata": {
+    		"description": "Disks for Azure virtual machines are created in storage accounts."
+    	}
+    },
+    "Virtual Network": {
+    	"type": "string",
+    	"defaultValue": "[concat(parameters('Name'), 'VNET')]",
+    	"metadata":{
+    		"description": "Virtual networks are logically isolated from each other in Azure. You can configure their IP address ranges, subnets, route tables, gateways, and security settings, much like a traditional network in your data center. Virtual machines in the same virtual network can access each other by default."
+    	}
+    },
+    "Subnet":{
+    	"type": "string",
+    	"defaultValue": "Subnet(10.0.0.0/24)",
+    	"metadata":{
+    		"description": "A subnet is a range of IP addresses in your virtual network, which can be used to isolate virtual machines from each other or from the Internet."
+    	}
+    },
+    "Public IP address":{
+    	"type": "string",
+    	"defaultValue": "[concat(parameters('Name'), '-ip')]",
+    	"metadata":{
+			"description": "Use a public IP address if you want to communicate with the virtual machine from outside the network."
+    	}
+    },
+    "Network security group (firewall)":{
+    	"type": "string",
+    	"defaultValue": "[concat(parameters('Name'), 'nsg')]",
+    	"metadata":{
+    		"description": "A network security group is a set of firewall rules that control traffic to and from your virtual machine."
+    	}
     }
   },
   "variables": {
-    "storageAccountName": "[concat(uniquestring(resourceGroup().id), toLower(parameters('virtualMachineName')))]",
-    "nicName": "[concat(parameters('virtualMachineName'), 'Nic')]",
+    "storageAccountName": "[parameters('Storage Account')]",
+    "nicName": "[concat(parameters('Name'), 'Nic')]",
     "addressPrefix": "10.0.0.0/16",
     "subnetName": "Subnet",
     "subnetPrefix": "10.0.0.0/24",
-    "publicIPAddressName": "[concat(parameters('virtualMachineName'), '-ip')]",
-    "virtualNetworkName": "[concat(parameters('virtualMachineName'), 'VNET')]",
+    "publicIPAddressName": "[parameters('Public IP address')]",
+    "virtualNetworkName": "[parameters('Virtual Network')]",
     "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
-    "networkSecurityGroupName": "[concat(parameters('virtualMachineName'), 'nsg')]",
-    "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
+    "networkSecurityGroupName": "[parameters('Network security group (firewall)')]",
     "scriptURL": "https://raw.githubusercontent.com/xiaoyingLJ/createVM/master/gatewayInstall.ps1",
     "scriptParameters": "[concat('-gatewayKey ', parameters('gatewayKey'))]"
   },
@@ -159,7 +193,7 @@
     {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[parameters('virtualMachineName')]",
+      "name": "[parameters('Name')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
@@ -167,12 +201,12 @@
       ],
       "properties": {
 	      "hardwareProfile": {
-          "vmSize": "[parameters('virtualMachineSize')]"
+          "vmSize": "[parameters('Size')]"
         },
         "osProfile": {
-          "computerName": "[parameters('virtualMachineName')]",
-          "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
+          "computerName": "[parameters('Name')]",
+          "adminUsername": "[parameters('User name')]",
+          "adminPassword": "[parameters('Password')]"
         },
         "storageProfile": {
           "imageReference": {
@@ -276,11 +310,11 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('virtualMachineName'),'/installgateway',parameters('virtualMachineName'))]",
+      "name": "[concat(parameters('Name'),'/installgateway',parameters('Name'))]",
       "apiVersion": "2015-06-15",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/',parameters('virtualMachineName'))]",
+        "[concat('Microsoft.Compute/virtualMachines/',parameters('Name'))]",
         "[resourceId('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]"
       ],
       "properties": {
